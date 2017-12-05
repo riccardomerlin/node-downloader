@@ -1,0 +1,33 @@
+{
+  "extends": "airbnb-base",
+  "rules": {
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": true,
+        "variables": true
+      }
+    ],
+    "no-param-reassign": [
+      "error",
+      {
+        "props": false
+      }
+    ],
+    "object-shorthand": "off",
+    "no-trailing-spaces": "off",
+    "comma-dangle": "off",
+    "no-plusplus": "off",
+    "no-console": "off",
+    "no-await-in-loop": "off"
+  },
+  "globals": {
+    "beforeEach": true,
+    "afterEach": true,
+    "describe": true,
+    "test": true,
+    "expect": true,
+    "jest": true
+  }
+}

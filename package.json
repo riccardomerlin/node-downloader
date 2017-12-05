@@ -1,0 +1,56 @@
+{
+  "name": "onedrive-backup",
+  "version": "1.0.0",
+  "description": "Download files from onedrive and store them for backup.",
+  "main": "./console.js",
+  "bin": {
+    "onebackup": "./console.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "start": "node ./console.js",
+    "prestart": "gulp cleanup && gulp lint",
+    "lint": "gulp lint"
+  },
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "lib/**/*.js",
+      "!coverage/**",
+      "!**/node_modules/**"
+    ],
+    "coverageDirectory": "./coverage"
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ],
+  "keywords": [
+    "backup",
+    "onedrive",
+    "download"
+  ],
+  "author": "Riccardo Merlin",
+  "license": "ISC",
+  "devDependencies": {
+    "del": "^3.0.0",
+    "eslint-config-airbnb-base": "11.3.2",
+    "eslint-plugin-import": "^2.7.0",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "3.0.1",
+    "gulp-plumber": "^1.1.0",
+    "jest": "^21.2.1",
+    "pre-commit": "^1.2.2"
+  },
+  "dependencies": {
+    "axios": "^0.17.0",
+    "moment": "^2.19.2",
+    "passport": "^0.4.0",
+    "progress": "^2.0.0",
+    "sinon": "^4.1.2",
+    "superagent": "^3.7.0",
+    "toobusy-js": "^0.5.1",
+    "winston": "^2.4.0"
+  }
+}
