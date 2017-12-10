@@ -11,35 +11,29 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-const args = {
-  downloadPath: '',
-  accessToken: '',
-  refreshToken: ''
-};
+rl.on('line', read);
 
-let inputCount = 0;
-rl.setPrompt('Download path (current dir): ');
-rl.prompt();
+const args = [];
+const prompts = [
+  'Download path (current dir): ',
+  'Access Token: ',
+  'Refresh Token: '
+];
 
-rl.on('line', getInput);
+prompt();
 
-function getInput(input) {
-  inputCount++;
-  switch (inputCount) {
-    case 1:
-      args.downloadPath = input || './downloads';
-      rl.setPrompt('Access Token: ');
-      break;
-    case 2:
-      args.accessToken = input;
-      rl.setPrompt('Refresh Token: ');
-      break;
-    default:
-      args.refreshToken = input;
-      rl.removeListener('line', getInput);
-      masterProcess(args);
-      return;
+function read(input) {
+  args.push(input);
+  prompt();
+}
+
+function prompt() {
+  if (prompts.length === 0) {
+    rl.removeListener('line', read);
+    masterProcess(...args);
+    return;
   }
-
+  
+  rl.setPrompt(prompts.shift());
   rl.prompt();
 }
