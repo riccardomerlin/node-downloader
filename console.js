@@ -1,79 +1,133 @@
 const Queue = require('./lib/Queue');
 const ChildProcessPool = require('./lib/ChildProcessPool');
 const fs = require('fs');
+const OneDriveApi = require('./lib/OneDriveApi');
+const { clientID, clientSecret } = require('./config');
+const readline = require('readline');
+const callApi = require('./lib/callApi');
 
-process.on('uncaughtException', () => {
+process.on('uncaughtException', (error) => {
+  console.error(error.message);
   process.exit(1);
 });
-const downloadPath = './downloads';
 
-try {
-  fs.mkdirSync(downloadPath);
-  console.log(`Directory '${downloadPath}' created.`);  
-} catch (error) {
-  if (error.code !== 'EEXIST') {
-    throw error;
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+const args = {
+  downloadPath: '',
+  accessToken: '',
+  refreshToken: ''
+};
+
+let inputCount = 0;
+rl.setPrompt('Download path (current dir): ');
+rl.prompt();
+
+rl.on('line', getInput);
+
+function getInput(input) {
+  inputCount++;
+  switch (inputCount) {
+    case 1:
+      args.downloadPath = input || './downloads';
+      rl.setPrompt('Access Token: ');
+      break;
+    case 2:
+      args.accessToken = input;
+      rl.setPrompt('Refresh Token: ');
+      break;
+    default:
+      args.refreshToken = input;
+      rl.removeListener('line', getInput);
+      main(args);
+      return;
   }
-  console.log(`Directory '${downloadPath}' already exists.`);
+
+  rl.prompt();
 }
 
-let stop = false;
-const filesQueue = new Queue();
-filesQueue.on('itemsReceived', () => {
-  console.log('Items in queue:', filesQueue.count());
-});
+function main(params) {
+  const { downloadPath, accessToken, refreshToken } = params;
 
-const processPool = new ChildProcessPool(10);
-processPool.on('childDisconnected', (activeChildren) => {
-  if (activeChildren === 0 && filesQueue.isEmpty && stop === true) {
-    console.log('All files downloaded, have a nice day!');
-    process.exit();
-  }
-});
-
-const maxEnqueueCalls = 2;
-let count = 0;
-setInterval(() => {
-  if (count < maxEnqueueCalls) {
-    filesQueue.enqueue(
-      [{ name: 'big1.file', size: 1788000447 },
-      { name: 'small1.file', size: 4470447 },
-      { name: 'big2.file', size: 1788000447 },
-      { name: 'small2.file', size: 4470447 },
-      { name: 'big3.file', size: 1788000447 },
-      { name: 'small3.file', size: 4470447 },
-      { name: 'big4.file', size: 1788000447 },
-      { name: 'small4.file', size: 4470447 },
-      { name: 'big5.file', size: 1788000447 },
-      { name: 'small5.file', size: 4470447 }]
-    );
-    count++;
-  } else {
-    stop = true;
-  }
-}, 1000);
-
-donwloadNext(filesQueue, processPool);
-
-function donwloadNext(queue, pool) {
-  if (stop === true && queue.isEmpty === true) return;
-
-  const childProcess = pool.tryFork('./lib/download.js');
-  if (!childProcess) return;
-
-  const file = queue.dequeue();
-  if (!file) {
-    childProcess.disconnect();
-    setTimeout(() => donwloadNext(queue, pool), 1000);
-    return;
+  try {
+    fs.mkdirSync(downloadPath);
+    console.log(`Directory '${downloadPath}' created.`);
+  } catch (error) {
+    if (error.code !== 'EEXIST') {
+      throw error;
+    }
+    console.log(`Directory '${downloadPath}' already exists.`);
   }
 
-  childProcess.on('message', () => {
-    childProcess.disconnect();
-    donwloadNext(queue, pool);
+  const endpoint = new OneDriveApi(accessToken, refreshToken, clientID, clientSecret);
+
+  let stop = false;
+  const filesQueue = new Queue();
+  filesQueue.on('itemsReceived', () => {
+    console.log('Items in queue:', filesQueue.count());
   });
 
-  childProcess.send(file);
-  
-  donwloadNext(queue, pool);
+  const processPool = new ChildProcessPool(10);
+  processPool.on('childDisconnected', (activeChildren) => {
+    if (activeChildren === 0 && filesQueue.isEmpty && stop === true) {
+      console.log('All files downloaded, have a nice day!');
+      process.exit();
+    }
+  });
+
+  let result = {};
+  const interval = setInterval(async () => {
+    try {
+      result = await callApi(endpoint, 'getFiles', result.nextLink);
+      filesQueue.enqueue(result.files);   
+      if (!result.nextLink) {
+        clearInterval(interval);
+        stop = true;
+      }    
+    } catch (error) {
+      console.error('"getFiles" error:', error.message);
+    }
+  }, 1000);
+
+  downloadNext(filesQueue, processPool);
+
+  function downloadNext(queue, pool) {
+    if (stop === true && queue.isEmpty === true) return;
+
+    const childProcess = pool.tryFork('./lib/download.js');
+    if (!childProcess) return;
+
+    const file = queue.dequeue();
+    if (!file) {
+      childProcess.disconnect();
+      setTimeout(() =>
+        downloadNext(queue, pool),
+        1000);
+      return;
+    }
+
+    childProcess.on('message', (message) => {
+      childProcess.disconnect();
+
+      const { status, processedFile } = message;
+      if (status === 'retry') {
+        console.log(`Download failed. File ${processedFile.name} enqueued to be re-processed.`);
+        queue.enqueue(processedFile);
+      }
+
+      downloadNext(queue, pool);
+    });
+
+    childProcess.send({
+      downloadPath,
+      file,
+      accessToken: endpoint.accessToken,
+      refreshToken: endpoint.refreshToken
+    });
+
+    downloadNext(queue, pool);
+  }
 }
