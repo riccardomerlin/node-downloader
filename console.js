@@ -1,9 +1,14 @@
 const readline = require('readline');
 const masterProcess = require('./lib/master');
+const toobusy = require('toobusy-js');
 
 process.on('uncaughtException', (error) => {
   console.error(error.message);
   process.exit(1);
+});
+
+toobusy.onLag((currentLag) => {
+  console.log(`Event loop lag detected! Latency: ${currentLag}ms`);
 });
 
 const rl = readline.createInterface({
