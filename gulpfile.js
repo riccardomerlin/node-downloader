@@ -21,5 +21,5 @@ function jsLint() {
 }
 
 function cleanUp() {
-  return del('downloads');
+  return del('downloads/*.*');
 }
