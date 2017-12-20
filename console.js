@@ -7,6 +7,10 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
+process.on('unhandledRejection', (error) => {
+  throw error; 
+});
+
 toobusy.onLag((currentLag) => {
   console.log(`Event loop lag detected! Latency: ${currentLag}ms`);
 });
