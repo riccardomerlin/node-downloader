@@ -10,7 +10,8 @@
     "test": "jest",
     "start": "node ./console.js",
     "prestart": "gulp cleanup && gulp lint",
-    "lint": "gulp lint"
+    "lint": "gulp lint",
+    "monitor": "node ./lib/clientMonitor.js"
   },
   "jest": {
     "verbose": true,
