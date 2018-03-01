@@ -8,7 +8,7 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (error) => {
-  throw error; 
+  throw error;
 });
 
 toobusy.onLag((currentLag) => {
@@ -22,17 +22,26 @@ const rl = readline.createInterface({
 
 rl.on('line', read);
 
+let currentValue;
 const args = [];
 const prompts = [
-  'Download path (current dir): ',
-  'Access Token: ',
-  'Refresh Token: '
+  {
+    message: 'Download path',
+    default: 'downloads'
+  },
+  {
+    message: 'Access Token'
+  },
+  {
+    message: 'Refresh Token',
+  }
 ];
 
 prompt();
 
 function read(input) {
-  args.push(input);
+  const value = input.trim();
+  args.push(value !== '' ? value : currentValue);
   prompt();
 }
 
@@ -42,7 +51,10 @@ function prompt() {
     masterProcess(...args);
     return;
   }
-  
-  rl.setPrompt(prompts.shift());
+
+  const p = prompts.shift();
+  currentValue = p.default;
+
+  rl.setPrompt(`${p.message}${p.default ? ` (${p.default})` : ''}: `);
   rl.prompt();
 }
