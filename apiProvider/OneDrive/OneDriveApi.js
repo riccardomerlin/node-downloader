@@ -2,13 +2,14 @@ const request = require('superagent');
 const axios = require('axios');
 const qs = require('querystring');
 const urlJoin = require('proper-url-join');
-const throwError = require('./throwError');
-const { clientID, clientSecret, remoteFolder } = require('../config');
+const throwError = require('../throwError');
+const UrlComposer = require('./UrlComposer');
+const { clientID, clientSecret, folder } = require('./config');
 
 const responseTimeout = 10000;
 const deadlineTimeout = 60000;
 const pageSize = 50;
-const baseUri = 'https://graph.microsoft.com/v1.0/me/drive/root:/';
+const baseUri = 'https://graph.microsoft.com/v1.0/me/drive/root';
 const tokenUrl = 'https://login.microsoftonline.com/common/oauth2/v2.0/token';
 
 class OneDriveApi {
@@ -18,7 +19,7 @@ class OneDriveApi {
   }
 
   async getFiles(link) {
-    const url = link || urlJoin(baseUri, remoteFolder, `:/children?select=id,name,size,folder&top=${pageSize}`);
+    const url = link || urlJoin(UrlComposer.compose(baseUri, folder), `/children?select=id,name,size,folder&top=${pageSize}`);
     let result;
     try {
       const response = await request
@@ -43,16 +44,16 @@ class OneDriveApi {
 
   async getFile(fileName) {
     let result;
-
     try {
+      const url = urlJoin(UrlComposer.compose(baseUri, urlJoin(folder, fileName)), '/content');
       const response = await axios({
         method: 'get',
-        url: urlJoin(baseUri, remoteFolder, fileName, ':/content'),
+        url: url,
         responseType: 'stream',
         headers: {
           Authorization: `Bearer ${this.accessToken}`
         },
-        timeout: responseTimeout        
+        timeout: responseTimeout
       });
 
       result = response.data;
@@ -66,8 +67,9 @@ class OneDriveApi {
   async getFolderInfo() {
     let response;
     try {
+      const url = UrlComposer.compose(baseUri, folder);
       response = await request
-        .get(urlJoin(baseUri, remoteFolder, ':/'))
+        .get(url)
         .set('Authorization', `Bearer ${this.accessToken}`)
         .set('Content-Type', 'application/json')
         .timeout({

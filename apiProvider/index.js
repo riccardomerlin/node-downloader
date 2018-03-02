@@ -1,3 +1,3 @@
-const Api = require('./OneDriveApi');
+const Api = require('./OneDrive/OneDriveApi');
 
 module.exports = Api;
