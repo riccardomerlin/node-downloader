@@ -1,3 +1,4 @@
 module.exports = {
-  childProcesses: 10
+  childProcesses: 10,
+  apiProviderName: 'OneDrive'
 };
