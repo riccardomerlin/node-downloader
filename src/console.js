@@ -1,5 +1,7 @@
+#!/usr/bin/env node
+
 const readline = require('readline');
-const masterProcess = require('./lib/master');
+const masterProcess = require('./master');
 const toobusy = require('toobusy-js');
 
 process.on('uncaughtException', (error) => {

@@ -1,7 +1,7 @@
-const FileWriter = require('./FileWriter');
-const callApi = require('./callApi');
-const apiProviders = require('../apiProviders');
-const { apiProviderName } = require('../config');
+const FileWriter = require('./lib/FileWriter');
+const callApi = require('./lib/callApi');
+const apiProviders = require('./apiProviders');
+const { apiProviderName } = require('./config');
 
 const ApiEndpoint = apiProviders[apiProviderName];
 

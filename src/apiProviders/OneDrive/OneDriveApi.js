@@ -47,7 +47,7 @@ class OneDriveApi {
     try {
       const url = urlJoin(UrlComposer.compose(baseUri, urlJoin(folder, fileName)), '/content');
       const response = await axios({
-        method: 'get',
+        method: 'GET',
         url: url,
         responseType: 'stream',
         headers: {

@@ -8,8 +8,7 @@ gulp.task('cleanup', cleanUp);
 
 function jsLint() {
   return gulp.src([
-    'lib/**/*.js',
-    'console*.js',
+    'src/**/*.js',
     '**/*.test.js',
     '!coverage/**/*',
     '!node_modules/**/*'

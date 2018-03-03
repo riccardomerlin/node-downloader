@@ -1,23 +1,23 @@
 {
-  "name": "onedrive-backup",
+  "name": "node-downloader",
   "version": "1.0.0",
-  "description": "Download files from onedrive and store them for backup.",
-  "main": "./console.js",
+  "description": "Node console parallel downloader",
+  "main": "./src/console.js",
   "bin": {
-    "onebackup": "./console.js"
+    "nodown": "./src/console.js"
   },
   "scripts": {
     "test": "jest",
-    "start": "node ./console.js",
+    "start": "node ./src/console.js",
     "prestart": "gulp cleanup && gulp lint",
     "lint": "gulp lint",
-    "monitor": "node ./lib/clientMonitor.js"
+    "monitor": "node ./src/lib/clientMonitor.js"
   },
   "jest": {
     "verbose": true,
     "collectCoverage": true,
     "collectCoverageFrom": [
-      "lib/**/*.js",
+      "src/**/*.js",
       "!coverage/**",
       "!**/node_modules/**"
     ],

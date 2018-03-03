@@ -1,10 +1,10 @@
-const Queue = require('./Queue');
-const ChildProcessPool = require('./ChildProcessPool');
+const Queue = require('./lib/Queue');
+const ChildProcessPool = require('./lib/ChildProcessPool');
 const fs = require('fs');
-const { childProcesses, apiProviderName } = require('../config');
-const callApi = require('./callApi');
-const Monitor = require('./Monitor');
-const apiProviders = require('../apiProviders');
+const { childProcesses, apiProviderName } = require('./config');
+const callApi = require('./lib/callApi');
+const Monitor = require('./lib/Monitor');
+const apiProviders = require('./apiProviders');
 
 const ApiEndpoint = apiProviders[apiProviderName];
 
@@ -110,7 +110,7 @@ async function master(downloadPath, accessToken, refreshToken) {
       return;
     }
 
-    const childProcess = pool.tryFork('./lib/child.js');
+    const childProcess = pool.tryFork('./src/child.js');
     if (!childProcess) {
       queue.enqueue(file);
       return;
