@@ -18,6 +18,12 @@ class OneDriveApi {
     this.refreshToken = refreshToken;
   }
 
+  static checkSettings() {
+    if (!clientID || !clientSecret) {
+      throw new Error('Error: clientID or clientSecret are not set correctly.\r\nCheck OneDrive provider configuration and try again.');
+    }
+  }
+
   async getFiles(link) {
     const url = link || urlJoin(UrlComposer.compose(baseUri, folder), `/children?select=id,name,size,folder&top=${pageSize}`);
     let result;

@@ -3,6 +3,10 @@
 const readline = require('readline');
 const masterProcess = require('./master');
 const toobusy = require('toobusy-js');
+const apiProviders = require('./apiProviders');
+const { apiProviderName } = require('./config');
+
+const ApiEndpoint = apiProviders[apiProviderName];
 
 process.on('uncaughtException', (error) => {
   console.error(error.message);
@@ -16,6 +20,8 @@ process.on('unhandledRejection', (error) => {
 toobusy.onLag((currentLag) => {
   console.log(`Event loop lag detected! Latency: ${currentLag}ms`);
 });
+
+ApiEndpoint.checkSettings();
 
 const rl = readline.createInterface({
   input: process.stdin,
