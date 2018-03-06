@@ -8,18 +8,17 @@ function startWebAccess() {
       });
 
     web.stdout.on('data', (data) => {
-      console.log(`web-access: ${data}`);
+      console.log(`${data}`);
       resolve();
     });
 
     web.stderr.on('data', (data) => {
-      const msg = `web-access error: ${data}`;
-      console.log(msg);
-      reject(msg);
+      console.log(`${data}`);
+      reject(`web-access error: ${data}`);
     });
 
     web.on('close', (code) => {
-      console.log(`web-access process exited with code ${code}`);
+      console.log(`web-access process exited with code ${code}.`);
     });
   });
 }
