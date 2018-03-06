@@ -1,9 +1,7 @@
 const FileWriter = require('./lib/FileWriter');
 const callApi = require('./lib/callApi');
-const apiProviders = require('./apiProviders');
+const ApiProviders = require('./ApiProviders');
 const { apiProviderName } = require('./config');
-
-const ApiEndpoint = apiProviders[apiProviderName];
 
 const fileWriter = new FileWriter();
 process.on('message', write);
@@ -19,13 +17,14 @@ async function write(args) {
         status: 'newChunk',
         processedFile: file,
         percentage: percent
-      });      
+      });
     });
 
     fileWriter.on('done', () => {
       process.send({ status: 'done', processedFile: file });
     });
 
+    const ApiEndpoint = await (new ApiProviders()).get(apiProviderName);
     const endpoint = new ApiEndpoint(accessToken, refreshToken);
     try {
       const stream = await callApi(endpoint, 'getFile', file.name);

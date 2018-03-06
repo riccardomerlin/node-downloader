@@ -1,16 +1,13 @@
 const Queue = require('./lib/Queue');
 const ChildProcessPool = require('./lib/ChildProcessPool');
 const fs = require('fs');
-const { childProcesses, apiProviderName } = require('./config');
+const { childProcesses } = require('./config');
 const callApi = require('./lib/callApi');
 const Monitor = require('./lib/Monitor');
-const apiProviders = require('./apiProviders');
-
-const ApiEndpoint = apiProviders[apiProviderName];
 
 module.exports = master;
 
-async function master(downloadPath, accessToken, refreshToken) {
+async function master(ApiEndpoint, downloadPath, accessToken, refreshToken) {
   const monitorArgs = {
     itemsInQueue: 0,
     totalItems: 0,
@@ -69,7 +66,7 @@ async function master(downloadPath, accessToken, refreshToken) {
 
     if (activeChildren === 0 && filesQueue.isEmpty && stop === true) {
       console.timeEnd('Elapsed time');
-      console.log('All files downloaded, have a nice day!');
+      console.log('All files downloaded, have a nice day!');   
       process.exit();
     }
 

@@ -1,0 +1,15 @@
+<label for="refresh_token">
+  Access Token:
+  <input name="access_token" value="{{access_token}}">
+</label>
+<br/>
+<label for="refresh_token">
+  Refresh Token:
+  <input name="refresh_token" value="{{refresh_token}}">
+</label>
+<br/> Scope: {{scope}}
+<br/>
+<form action="https://login.microsoftonline.com/common/oauth2/v2.0/logout" method="GET">
+  <input type="hidden" name="post_logout_redirect_uri" value="http://localhost:8086/token">
+  <button type="submit">Logout</button>
+</form>

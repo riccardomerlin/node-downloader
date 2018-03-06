@@ -46,6 +46,9 @@
   },
   "dependencies": {
     "axios": "^0.17.0",
+    "detect-port": "^1.2.2",
+    "express": "^4.16.2",
+    "hbs": "^4.0.1",
     "proper-url-join": "^1.2.0",
     "single-line-log": "^1.1.2",
     "superagent": "^3.7.0",

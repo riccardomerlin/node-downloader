@@ -4,7 +4,9 @@ const qs = require('querystring');
 const urlJoin = require('proper-url-join');
 const throwError = require('../throwError');
 const UrlComposer = require('./UrlComposer');
-const { clientID, clientSecret, folder } = require('./config');
+const { clientID, clientSecret, folder, webAccessPort } = require('./config');
+const startWebAccess = require('./startWebAccess');
+const detect = require('detect-port');
 
 const responseTimeout = 10000;
 const deadlineTimeout = 60000;
@@ -16,12 +18,6 @@ class OneDriveApi {
   constructor(accessToken, refreshToken) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
-  }
-
-  static checkSettings() {
-    if (!clientID || !clientSecret) {
-      throw new Error('Error: clientID or clientSecret are not set correctly.\r\nCheck OneDrive provider configuration and try again.');
-    }
   }
 
   async getFiles(link) {
@@ -115,4 +111,15 @@ class OneDriveApi {
   }
 }
 
-module.exports = OneDriveApi;
+module.exports = async () => {
+  if (!clientID || !clientSecret) {
+    throw new Error('Error: clientID or clientSecret are not set correctly.\r\nCheck OneDrive provider configuration and try again.');
+  }
+
+  const port = await detect(webAccessPort);
+  if (port === webAccessPort) {
+    await startWebAccess();
+  }
+
+  return OneDriveApi;
+};
