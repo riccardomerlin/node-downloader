@@ -4,9 +4,8 @@ const qs = require('querystring');
 const urlJoin = require('proper-url-join');
 const throwError = require('../throwError');
 const UrlComposer = require('./UrlComposer');
-const { clientID, clientSecret, folder, webAccessPort } = require('./config');
+const { clientID, clientSecret, folder } = require('./config');
 const startWebAccess = require('./startWebAccess');
-const detect = require('detect-port');
 
 const responseTimeout = 10000;
 const deadlineTimeout = 60000;
@@ -18,6 +17,26 @@ class OneDriveApi {
   constructor(accessToken, refreshToken) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
+  }
+
+  static async getCredentials() {
+    const web = await startWebAccess();
+
+    return new Promise((resolve, reject) => {
+      web.on('message', (data) => {
+        web.disconnect();
+        console.log('Web-Access has been disconnected.');
+        if (!data) {
+          reject('No data has been retuned for credentials.');
+          return;
+        }
+
+        resolve({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token
+        });
+      });
+    });
   }
 
   async getFiles(link) {
@@ -111,15 +130,4 @@ class OneDriveApi {
   }
 }
 
-module.exports = async () => {
-  if (!clientID || !clientSecret) {
-    throw new Error('Error: clientID or clientSecret are not set correctly.\r\nCheck OneDrive provider configuration and try again.');
-  }
-
-  const port = await detect(webAccessPort);
-  if (port === webAccessPort) {
-    await startWebAccess();
-  }
-
-  return OneDriveApi;
-};
+module.exports = OneDriveApi;

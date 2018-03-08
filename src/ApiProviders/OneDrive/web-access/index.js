@@ -6,13 +6,21 @@ const axios = require('axios');
 const hbs = require('hbs');
 const detect = require('detect-port');
 const urlJoin = require('proper-url-join');
-const { webAccessPort } = require('../config');
+const { clientID, clientSecret, webAccessPort } = require('../config');
 
-detect(webAccessPort).then((p) => {
-  if (webAccessPort !== p) {
-    throw new Error(`Port ${webAccessPort} is busy. Please, change the port number in ./config.js file.`);
+main();
+
+async function main() {
+  if (!clientID || !clientSecret) {
+    throw new Error('Error: clientID or clientSecret are not set correctly.\r\nCheck OneDrive provider configuration and try again.');
   }
-  const baseUrl = `http://localhost:${webAccessPort}`;
+
+  const port = await detect(webAccessPort);
+  if (port !== webAccessPort) {
+    throw new Error(`Port ${webAccessPort} is busy. Please, free up the port or change the webAccessPort in ./config.js file.`);
+  }
+
+  const baseUrl = `http://localhost:${port}`;
 
   const app = express();
 
@@ -21,18 +29,16 @@ detect(webAccessPort).then((p) => {
   app.set('view engine', 'hbs');
   app.set('views', path.join(__dirname, './views'));
 
-  app.use(express.static('public'));
-
   app.get('/', (req, res) => {
-    res.render('index', { partialView: () => 'login' });
+    res.render('index', { partialView: () => 'login', clientID });
   });
 
   app.get('/token', async (req, res) => {
     const urlParts = url.parse(req.url, true);
 
     const data = qs.stringify({
-      client_id: '8bd169cf-338d-4d2e-8e16-e97a44bbfb0b',
-      client_secret: '3ok4xP902oe585R8kB90BLD',
+      client_id: clientID,
+      client_secret: clientSecret,
       code: urlParts.query.code,
       grant_type: 'authorization_code',
       redirect_uri: urlJoin(baseUrl, '/token')
@@ -45,10 +51,10 @@ detect(webAccessPort).then((p) => {
         data: data
       });
 
-      res.render('index', {
-        partialView: () => 'welcome',
-        ...response.data
-      });
+      res.write('You are logged in successfully. Go back to the console to continue.');
+      res.end();
+
+      process.send(response.data);
     } catch (error) {
       console.log(error);
       res.write('Error!');
@@ -56,5 +62,5 @@ detect(webAccessPort).then((p) => {
     }
   });
 
-  app.listen(webAccessPort, () => console.log(`Open up your browser to this url to log in: ${baseUrl}`));
-});
+  app.listen(port, () => console.log(`Open up your browser to this url to log in: ${baseUrl}`));
+}

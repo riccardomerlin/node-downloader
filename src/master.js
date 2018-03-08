@@ -4,10 +4,24 @@ const fs = require('fs');
 const { childProcesses } = require('./config');
 const callApi = require('./lib/callApi');
 const Monitor = require('./lib/Monitor');
+const ApiProviders = require('./ApiProviders');
+const { apiProviderName } = require('./config');
 
 module.exports = master;
 
-async function master(ApiEndpoint, downloadPath, accessToken, refreshToken) {
+async function master(downloadPath) {
+  const apiProviders = new ApiProviders();
+  const ApiProvider = await apiProviders.get(apiProviderName);
+
+  let endpoint;
+  try {
+    const { accessToken, refreshToken } = await ApiProvider.getCredentials();
+    endpoint = new ApiProvider(accessToken, refreshToken);
+  } catch (error) {
+    console.log(error.message);
+    throw new Error('error on web-access');
+  }
+
   const monitorArgs = {
     itemsInQueue: 0,
     totalItems: 0,
@@ -29,8 +43,6 @@ async function master(ApiEndpoint, downloadPath, accessToken, refreshToken) {
     }
     console.log(`Directory '${downloadPath}' already exists.`);
   }
-
-  const endpoint = new ApiEndpoint(accessToken, refreshToken);
 
   try {
     const { totalItems, byteSize } = await callApi(endpoint, 'getFolderInfo');
@@ -66,7 +78,7 @@ async function master(ApiEndpoint, downloadPath, accessToken, refreshToken) {
 
     if (activeChildren === 0 && filesQueue.isEmpty && stop === true) {
       console.timeEnd('Elapsed time');
-      console.log('All files downloaded, have a nice day!');   
+      console.log('All files downloaded, have a nice day!');
       process.exit();
     }
 
@@ -136,7 +148,7 @@ async function master(ApiEndpoint, downloadPath, accessToken, refreshToken) {
           console.log(`Download failed. File ${processedFile.name} enqueued to be re-processed.`);
           queue.enqueue(processedFile);
           monitorArgs.httpFailures++;
-          monitor.broadcast(monitorArgs);          
+          monitor.broadcast(monitorArgs);
           break;
         default:
           break;
