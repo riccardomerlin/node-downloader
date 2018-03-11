@@ -24,8 +24,6 @@ class OneDriveApi {
 
     return new Promise((resolve, reject) => {
       web.on('message', (data) => {
-        web.disconnect();
-        console.log('Web-Access has been disconnected.');
         if (!data) {
           reject('No data has been retuned for credentials.');
           return;
