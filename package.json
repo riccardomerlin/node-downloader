@@ -6,6 +6,10 @@
   "bin": {
     "nodown": "./src/console.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/riccardomerlin/node-downloader.git"
+  },
   "scripts": {
     "test": "jest",
     "start": "node ./src/console.js",
