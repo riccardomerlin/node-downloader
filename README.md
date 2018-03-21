@@ -1,5 +1,7 @@
 NodeJs Downloader 
 =================
+[![Build Status](https://travis-ci.org/riccardomerlin/node-downloader.svg?branch=master)](https://travis-ci.org/riccardomerlin/node-downloader)
+
 Parallel file downloader console application developed using NodeJs.
 There is a built-in Api file source for OneDrive, but any provided source
 that implements the required interface can be plugged in
