@@ -72,9 +72,19 @@ You can also install the command globally
 ```
 $ npm install -g
 ```
-Then `nodown` comand will be avilable in your terminal
+Then `nodown` command will be avilable in your terminal
 ```
 $ nodown
+```
+
+### Downloads monitor
+You can monitor the downloads status by using the built-in monitor that
+node-downloader provides.
+
+Open a new terminal window, `cd` in the project directory and run the
+following command:
+```
+$ npm run monitor
 ```
 
 Prerequisites
