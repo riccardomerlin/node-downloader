@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 class ChildProcessPool extends EventEmitter {
   constructor(maxChildProcess) {
     super();
-    this.maxChildProcess = maxChildProcess;
+    this.maxChildProcess = maxChildProcess || 1;
     this.childProcessCount = 0;
   }
 
