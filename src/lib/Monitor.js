@@ -1,13 +1,23 @@
 const net = require('net');
 
-const port = 8000;
-
 class Monitor {
-  constructor() {
+  constructor(displayObject, port) {
+    this.displayObject = displayObject || {};
     this.sockets = {};
-    this.port = port;
-    this.server = net.createServer();
     this.counter = 0;
+    this.serverInit(port);
+  }
+
+  broadcast() {
+    Object.values(this.sockets).forEach((s) => {
+      s.write(JSON.stringify(this.displayObject));
+    });
+  }
+
+  serverInit(serverPort) {
+    const port = serverPort || 8000;
+
+    this.server = net.createServer();
     this.server.on('connection', (socket) => {
       socket.id = this.counter++;
 
@@ -18,15 +28,17 @@ class Monitor {
 
       this.sockets[socket.id] = socket;
     });
-    this.server.listen(this.port, () =>
-      console.log(`Server monitor is active on port ${this.port}.`)
+
+    this.server.listen(port, () =>
+      console.log(`Server monitor is active on port ${port}.`)
     );
   }
 
-  broadcast(args) {
-    Object.values(this.sockets).forEach((s) => {
-      s.write(JSON.stringify(args));
-    });
+  updateProperty(propertyName, propertyValue) {
+    if (!propertyName) return;
+
+    this.displayObject[propertyName] = propertyValue;
+    this.broadcast();
   }
 }
 

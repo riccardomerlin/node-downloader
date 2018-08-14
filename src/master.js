@@ -10,6 +10,15 @@ const { apiProviderName } = require('./config');
 module.exports = master;
 
 async function master(downloadPath) {
+  const monitor = new Monitor({
+    itemsInQueue: 0,
+    totalItems: 0,
+    totalSize: 0,
+    activeDownloads: 0,
+    downloadsCompleted: 0,
+    httpFailures: 0
+  });
+
   const apiProviders = new ApiProviders();
   const ApiProvider = await apiProviders.get(apiProviderName);
 
@@ -21,17 +30,6 @@ async function master(downloadPath) {
     console.log(error.message);
     throw new Error('error on web-access');
   }
-
-  const monitorArgs = {
-    itemsInQueue: 0,
-    totalItems: 0,
-    totalSize: 0,
-    activeDownloads: 0,
-    downloadsCompleted: 0,
-    httpFailures: 0
-  };
-
-  const monitor = new Monitor();
 
   console.time('Elapsed time');
   try {
@@ -46,10 +44,10 @@ async function master(downloadPath) {
 
   try {
     const { totalItems, byteSize } = await callApi(endpoint, 'getFolderInfo');
+
     console.log(`${byteSize / 1024 / 1024} MB in ${totalItems} files.`);
-    monitorArgs.totalItems = totalItems;
-    monitorArgs.totalSize = byteSize;
-    monitor.broadcast(monitorArgs);
+    monitor.updateProperty('totalItems', totalItems);
+    monitor.updateProperty('totalSize', byteSize);
   } catch (error) {
     console.error(error);
     process.exit();
@@ -57,37 +55,30 @@ async function master(downloadPath) {
 
   let stop = false;
   const filesQueue = new Queue();
-  filesQueue.on('itemsEnqueued', updateItemsToMonitor);
-  filesQueue.on('itemDequeued', updateItemsToMonitor);
+  filesQueue.on('itemsEnqueued', count => monitor.updateProperty('itemsInQueue', count));
+  filesQueue.on('itemDequeued', count => monitor.updateProperty('itemsInQueue', count));
 
   const processPool = new ChildProcessPool(childProcesses);
   processPool.on('childDisconnected', onChildDisconnected);
 
-  processPool.on('childForked', (activeChildren) => {
-    monitorArgs.activeDownloads = activeChildren;
-    monitor.broadcast(monitorArgs);
+  processPool.on('childForked', (activeChildProcesses) => {
+    monitor.updateProperty('activeDownloads', activeChildProcesses);
   });
 
   populateQueue(filesQueue);
 
   downloadNext(filesQueue, processPool);
 
-  function onChildDisconnected(activeChildren) {
-    monitorArgs.activeDownloads = activeChildren;
-    monitor.broadcast(monitorArgs);
+  function onChildDisconnected(activeChildProcesses) {
+    monitor.updateProperty('activeDownloads', activeChildProcesses);
 
-    if (activeChildren === 0 && filesQueue.isEmpty && stop === true) {
+    if (activeChildProcesses === 0 && filesQueue.isEmpty && stop === true) {
       console.timeEnd('Elapsed time');
       console.log('All files downloaded, have a nice day!');
       process.exit();
     }
 
     setTimeout(() => { downloadNext(filesQueue, processPool); }, 100);
-  }
-
-  function updateItemsToMonitor(count) {
-    monitorArgs.itemsInQueue = count;
-    monitor.broadcast(monitorArgs);
   }
 
   async function populateQueue(queue, link) {
@@ -108,27 +99,27 @@ async function master(downloadPath) {
     }
   }
 
-  function downloadNext(queue, pool) {
-    if (stop === true && queue.isEmpty) {
+  function downloadNext(files, poolOfProcesses) {
+    if (stop === true && files.isEmpty) {
       return;
     }
 
-    const file = queue.dequeue();
+    const file = files.dequeue();
     if (!file) {
-      setTimeout(() => { downloadNext(queue, pool); }, 100);
+      setTimeout(() => { downloadNext(files, poolOfProcesses); }, 100);
       return;
     }
 
-    const childProcess = pool.tryFork('./src/child.js');
-    if (!childProcess) {
-      queue.enqueue(file);
+    const fileSaverProcess = poolOfProcesses.tryFork('./src/fileSaver.js');
+    if (!fileSaverProcess) {
+      files.enqueue(file);
       return;
     }
 
-    childProcess.on('message', (message) => {
+    fileSaverProcess.on('message', (message) => {
       const { status, processedFile, percentage } = message;
       if (status !== 'newChunk') {
-        childProcess.disconnect();
+        fileSaverProcess.disconnect();
       }
 
       switch (status) {
@@ -141,27 +132,25 @@ async function master(downloadPath) {
           process.stdout.clearLine();
           process.stdout.cursorTo(0);
           process.stdout.write(`100% ${processedFile.name} complete.\n`);
-          monitorArgs.downloadsCompleted++;
-          monitor.broadcast(monitorArgs);
+          monitor.updateProperty('downloadsCompleted', monitor.displayObject.downloadsCompleted + 1);
           break;
         case 'retry':
           console.log(`Download failed. File ${processedFile.name} enqueued to be re-processed.`);
-          queue.enqueue(processedFile);
-          monitorArgs.httpFailures++;
-          monitor.broadcast(monitorArgs);
+          files.enqueue(processedFile);
+          monitor.updateProperty('httpFailures', monitor.displayObject.httpFailures + 1);
           break;
         default:
           break;
       }
     });
 
-    childProcess.send({
+    fileSaverProcess.send({
       downloadPath,
       file,
       accessToken: endpoint.accessToken,
       refreshToken: endpoint.refreshToken
     });
 
-    setTimeout(() => { downloadNext(queue, pool); }, 100);
+    setTimeout(() => { downloadNext(files, poolOfProcesses); }, 100);
   }
 }
