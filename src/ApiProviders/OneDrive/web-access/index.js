@@ -69,6 +69,7 @@ async function main() {
       console.log(error);
       res.write('An Error occured. Please, try again.');
       res.end();
+      server.close();
     }
   });
 

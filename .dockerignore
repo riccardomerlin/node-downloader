@@ -1,0 +1,5 @@
+**/node_modules
+**/coverage
+**/__mocks__
+**/downloads
+**/*.md
