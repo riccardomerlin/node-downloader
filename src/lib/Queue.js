@@ -1,17 +1,49 @@
 const EventEmitter = require('events');
+const callApi = require('./callApi');
 
 class Queue extends EventEmitter {
-  constructor(items) {
+  constructor(endpoint) {
     super();
 
+    this.endpoint = endpoint;
     this.queue = [];
-    this.enqueue(items);
+    this.moreItems = false;
+    this.started = false;
+  }
+
+  get isEmpty() {
+    return this.queue.length === 0;
+  }
+
+  get hasMoreItems() {
+    return this.moreItems;
+  }
+
+  async populate(nextLink) {
+    let result;
+    try {
+      result = await callApi(this.endpoint, 'getFiles', nextLink);
+    } catch (error) {
+      this.emit('error', error);
+      process.nextTick(() => this.populate(nextLink));
+      return;
+    }
+
+    this.enqueue(result.files);
+
+    if (result.nextLink) {
+      this.moreItems = true;
+      process.nextTick(() => this.populate(nextLink));
+    } else {
+      this.moreItems = false;
+    }
   }
 
   enqueue(items) {
     if (!items) {
       return;
     }
+    const countBeforeEnqueue = this.count();
 
     if (Array.isArray(items)) {
       this.queue.push(...items);
@@ -21,6 +53,10 @@ class Queue extends EventEmitter {
 
     const totalCount = this.count();
     this.emit('itemsEnqueued', totalCount, items);
+    if (!this.started && countBeforeEnqueue === 0) {
+      this.started = true;
+      this.emit('started', totalCount, items);
+    }
   }
 
   dequeue() {
@@ -32,10 +68,6 @@ class Queue extends EventEmitter {
 
   count() {
     return this.queue.length;
-  }
-
-  get isEmpty() {
-    return this.queue.length === 0;
   }
 }
 

@@ -1,50 +1,126 @@
+// jest mocks have to be declared first
+jest.mock('./callApi.js');
+
+const callApi = require('./callApi');
 const Queue = require('./Queue');
 
 describe('Queue tests', () => {
+  let queue;
+  beforeEach(() => {
+    queue = new Queue();
+  });
+
   test('queue is empty when the default constructor gets invoked', () => {
-    const queue = new Queue();
     expect(queue.isEmpty).toBe(true);
   });
 
-  test('queue has 1 element when passing an item in the constructor', () => {
-    const queue = new Queue({ mane: 'item1' });
-    expect(queue.count()).toBe(1);
+  describe('hasMoreItems', () => {
+    test('returns moreItems value', () => {
+      queue.moreItems = true;
+      const result = queue.hasMoreItems;
+      expect(result).toBe(true);
+    });
   });
 
-  test('queue has n elements when passing an array of n items in the contructor', () => {
-    const queue = new Queue([{ mane: 'item1' }, { name: 'item2' }]);
-    expect(queue.count()).toBe(2);
+  describe('poulate', () => {
+    test('calls callApi once', async () => {
+      // arrange
+      callApi.mockImplementationOnce(async () => Promise.resolve({ }));
+
+      // act
+      await queue.populate();
+
+      // assert
+      expect(callApi).toHaveBeenCalledTimes(1);
+    });
+
+    test('calls enqueue once', async () => {
+      // arrange
+      callApi.mockImplementationOnce(async () => Promise.resolve({ }));
+      const enqueue = jest.spyOn(queue, 'enqueue');
+      
+      // act
+      await queue.populate();
+
+      // assert
+      expect(queue.enqueue).toHaveBeenCalledTimes(1);
+      enqueue.mockRestore();
+    });
+
+    test('emit error with argument "myError" if callApi fails', async (done) => {
+      // arrange
+      callApi.mockImplementationOnce(async () => Promise.reject('myError'));
+      queue.on('error', assert);
+      
+      // act
+      await queue.populate();
+
+      // assert
+      function assert(errorMessage) {
+        expect(errorMessage).toBe('myError');
+        done();
+      }
+    });
+
+    test('hasMoreItems returns false if no nextLink is returned by callApi', async () => {
+      // arrange
+      callApi.mockImplementationOnce(async () => Promise.resolve({ }));
+      
+      // act
+      await queue.populate();
+
+      // assert
+      expect(queue.hasMoreItems).toBe(false);
+    });
+
+    test('hasMoreItems returns true if nextLink is returned by callApi', async () => {
+      // arrange
+      callApi.mockImplementationOnce(async () => Promise.resolve({ nextLink: 'aaa' }));
+      
+      // act
+      await queue.populate();
+
+      // assert
+      expect(queue.hasMoreItems).toBe(true);
+    });
   });
 
   describe('enqueue method', () => {
     test('queue is empty if no items are enqueued', () => {
-      const queue = new Queue();
       queue.enqueue();
       expect(queue.isEmpty).toBe(true);
     });
 
     test('queue has 1 item if enqueue 1 item', () => {
-      const queue = new Queue();
       queue.enqueue({ name: 'item1' });
       expect(queue.count()).toBe(1);
     });
 
     test('queue has n items if enqueue an array of n items', () => {
-      const queue = new Queue();
-      queue.enqueue([{ name: 'item1' }, { name: 'item2' }]);
+      queue.queue = [{ name: 'item1' }, { name: 'item2' }];
       expect(queue.count()).toBe(2);
+    });
+
+    test('enqueue emit "started" with count and items arguments if not yet started and queue is empty', (done) => {
+      queue.on('started', assert);
+
+      queue.enqueue('item1');
+
+      function assert(count, items) {
+        expect(count).toBe(1);
+        expect(items).toBe('item1');
+        done();
+      }
     });
   });
 
   describe('dequeue method', () => {
     test('returns undefined if the queue is empty', () => {
-      const queue = new Queue();
       const result = queue.dequeue();
       expect(result).toBe(undefined);
     });
 
     test('returns item1 if item1 and items2 get inserted in sequence', () => {
-      const queue = new Queue();
       queue.enqueue({ name: 'item1' });
       queue.enqueue({ name: 'item2' });
       const result = queue.dequeue();
@@ -52,7 +128,7 @@ describe('Queue tests', () => {
     });
 
     test('returns item1 if item1 and items2 get inserted as array', () => {
-      const queue = new Queue([{ name: 'item1' }, { name: 'item2' }]);
+      queue.enqueue([{ name: 'item1' }, { name: 'item2' }]);
       const result = queue.dequeue();
       expect(result.name).toBe('item1');
     });
@@ -60,10 +136,9 @@ describe('Queue tests', () => {
 
   describe('itemsEnqueued event', () => {
     test('returns 1 item if 1 item gets enqueued', (done) => {
-      const queue = new Queue();
       queue.on('itemsEnqueued', (count, item) => {
-        expect(count).toBe(1);        
-        expect(item).toBe('myitem');        
+        expect(count).toBe(1);
+        expect(item).toBe('myitem');
         done();
       });
 
@@ -71,11 +146,10 @@ describe('Queue tests', () => {
     });
 
     test('returns n items if n items get enqueued', (done) => {
-      const queue = new Queue();
       queue.on('itemsEnqueued', (count, items) => {
-        expect(count).toBe(2);        
-        expect(items.shift()).toBe('myitem');        
-        expect(items.shift()).toBe('myseconditem');        
+        expect(count).toBe(2);
+        expect(items.shift()).toBe('myitem');
+        expect(items.shift()).toBe('myseconditem');
         done();
       });
 
@@ -85,9 +159,8 @@ describe('Queue tests', () => {
 
   describe('itemDequeued event', () => {
     test('returns count 0 after dequeue method is called in an empty queue', (done) => {
-      const queue = new Queue();
-      queue.on('itemDequeued', (count) => {    
-        expect(count).toBe(0);  
+      queue.on('itemDequeued', (count) => {
+        expect(count).toBe(0);
         done();
       });
 
@@ -95,11 +168,11 @@ describe('Queue tests', () => {
     });
 
     test('returns count n-1 after dequeue method is called in a queue that has n items', (done) => {
-      const queue = new Queue(['myitem1', 'myitem2', 'myitem3']);
-      queue.on('itemDequeued', (count) => {    
-        expect(count).toBe(2);  
+      queue.on('itemDequeued', (count) => {
+        expect(count).toBe(2);
         done();
       });
+      queue.queue = ['myitem1', 'myitem2', 'myitem3'];
 
       queue.dequeue();
     });
