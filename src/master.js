@@ -53,66 +53,48 @@ async function master(downloadPath) {
     process.exit();
   }
 
-  let stop = false;
-  const filesQueue = new Queue();
-  filesQueue.on('itemsEnqueued', count => monitor.updateProperty('itemsInQueue', count));
-  filesQueue.on('itemDequeued', count => monitor.updateProperty('itemsInQueue', count));
+  const processPool = new ChildProcessPool(childProcesses)
+    .on('childDisconnected', onChildDisconnected)
+    .on('childForked', (activeChildProcesses) => {
+      monitor.updateProperty('activeDownloads', activeChildProcesses);
+    });
 
-  const processPool = new ChildProcessPool(childProcesses);
-  processPool.on('childDisconnected', onChildDisconnected);
-
-  processPool.on('childForked', (activeChildProcesses) => {
-    monitor.updateProperty('activeDownloads', activeChildProcesses);
-  });
-
-  populateQueue(filesQueue);
-
-  downloadNext(filesQueue, processPool);
+  const filesQueue = new Queue(endpoint);
+  filesQueue
+    .on('started', () => {
+      setImmediate(() => downloadNextFile(filesQueue, processPool));
+    })
+    .on('itemsEnqueued', count => monitor.updateProperty('itemsInQueue', count))
+    .on('itemDequeued', count => monitor.updateProperty('itemsInQueue', count))
+    .on('error', error => console.error(error))
+    .populate();
 
   function onChildDisconnected(activeChildProcesses) {
     monitor.updateProperty('activeDownloads', activeChildProcesses);
 
-    if (activeChildProcesses === 0 && filesQueue.isEmpty && stop === true) {
+    if (activeChildProcesses === 0 && filesQueue.isEmpty && !filesQueue.hasMoreItems) {
       console.timeEnd('Elapsed time');
       console.log('All files downloaded, have a nice day!');
       process.exit();
     }
 
-    setTimeout(() => { downloadNext(filesQueue, processPool); }, 100);
+    setImmediate(() => { downloadNextFile(filesQueue, processPool); });
   }
 
-  async function populateQueue(queue, link) {
-    let result;
-    try {
-      result = await callApi(endpoint, 'getFiles', link);
-    } catch (error) {
-      console.error(error);
-      populateQueue(queue, link);
+  function downloadNextFile(queue, poolOfProcesses) {
+    if (!queue.hasMoreItems && queue.isEmpty) {
       return;
     }
 
-    queue.enqueue(result.files);
-    if (result.nextLink) {
-      populateQueue(queue, result.nextLink);
-    } else {
-      stop = true;
-    }
-  }
-
-  function downloadNext(files, poolOfProcesses) {
-    if (stop === true && files.isEmpty) {
-      return;
-    }
-
-    const file = files.dequeue();
+    const file = queue.dequeue();
     if (!file) {
-      setTimeout(() => { downloadNext(files, poolOfProcesses); }, 100);
+      setImmediate(() => { downloadNextFile(queue, poolOfProcesses); });
       return;
     }
 
     const fileSaverProcess = poolOfProcesses.tryFork('./src/fileSaver.js');
     if (!fileSaverProcess) {
-      files.enqueue(file);
+      queue.enqueue(file);
       return;
     }
 
@@ -136,7 +118,7 @@ async function master(downloadPath) {
           break;
         case 'retry':
           console.log(`Download failed. File ${processedFile.name} enqueued to be re-processed.`);
-          files.enqueue(processedFile);
+          queue.enqueue(processedFile);
           monitor.updateProperty('httpFailures', monitor.displayObject.httpFailures + 1);
           break;
         default:
@@ -151,6 +133,6 @@ async function master(downloadPath) {
       refreshToken: endpoint.refreshToken
     });
 
-    setTimeout(() => { downloadNext(files, poolOfProcesses); }, 100);
+    setImmediate(() => { downloadNextFile(queue, poolOfProcesses); });
   }
 }
