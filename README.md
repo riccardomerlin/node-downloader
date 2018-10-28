@@ -19,29 +19,25 @@ Each child process is responsible to download one file: if the download
 fails the file is put back in the queue to be reprocessed, otherwise the
 process is terminated.
 
-The general idea is split the work-load between multiple processes and
-make use of asyncronous programming to keeps long tasks off the event loop,
+The general idea is to split the work-load between multiple processes and
+make use of asyncronous programming to keep long tasks off the event loop,
 so that the program can take in other files to download to optimize the
 download speed.
 
 Getting Started
 ---------------
-```
+```bash
 $ git clone https://github.com/riccardomerlin/node-downloader.git
 
 $ cd node-downloader
 
-$ npm install 
-```
-or
-```
-$ yarn install
+$ npm install
 ```
 ### OneDrive provider configuration
 This project provides a built-in Api provider towards OneDrive services.
 Configure OneDrive provider by adding the following enviroment
 variables to your system:
-```
+```bash
 $ export ONEDRIVE_CLIENTID=<provided_client_id>
 $ export ONEDRIVE_CLIENT_SECRET=<provided_client_secret>
 ```
@@ -60,32 +56,33 @@ as described above.
 
 ### Run
 To run the application execute
-```
-$ npm start
-```
-or
-```
-yarn start
+```bash
+npm start
 ```
 
-You can also install the command globally
-```
+You can also install the bash command globally
+```bash
 $ npm install -g
 ```
 Then `nodown` command will be avilable in your terminal
-```
+```bash
 $ nodown
 ```
 
 ### Downloads monitor
 You can monitor the downloads status by using the built-in monitor that
-node-downloader provides.
+*node-downloader* provides.
 
 Open a new terminal window, `cd` in the project directory and run the
 following command:
-```
+```bash
 $ npm run monitor
 ```
+
+Run on Docker
+-------------
+To create and run 
+
 
 Prerequisites
 -------------
@@ -93,7 +90,7 @@ Prerequisites
 
 Create a new API provider
 -------------------------
-N/A
+To be completed.
 
 Third-party libraries
 ---------------------

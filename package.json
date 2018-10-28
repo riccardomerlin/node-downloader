@@ -17,8 +17,8 @@
     "lint": "gulp lint",
     "monitor": "node ./src/lib/clientMonitor.js"
   },
-  "engines" : { 
-    "node" : "~8.8.1"
+  "engines": {
+    "node": "~8.8.1"
   },
   "jest": {
     "verbose": true,
