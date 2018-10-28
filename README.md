@@ -81,8 +81,44 @@ $ npm run monitor
 
 Run on Docker
 -------------
-To create and run 
+Build the docker image for debugging purposes:
+```bash
+$ docker build -f "debug.dockerfile" -t node-downloader:debug .
+```
 
+Run the degug image using the following command:
+```bash
+$ docker run -ti \
+  --env ONEDRIVE_CLIENTID=<onedrive_client_id> \
+  --env ONEDRIVE_CLIENT_SECRET=<onedire_client_secret> \
+  -p 8086:8086 \
+  -p 8000:8000 \
+  node-downloader:debug
+```
+
+You can optionally mount a host volume to the docker container
+so that you can use the image while developing to run live your
+code in docker.
+Add the following parameter to the docker run command:
+```bash
+--mount type=bind,src=/<host_path>/src,dst=/app-src/src
+```
+
+The `release.dockerfile` install `nodown` globally in
+the docker image so that it can be used to run the
+application from command line.
+
+To build and run that image:
+```bash
+$ docker build -f "release.dockerfile" -t node-downloader:release .
+
+$ docker run -ti \
+  --env ONEDRIVE_CLIENTID=<onedrive_client_id> \
+  --env ONEDRIVE_CLIENT_SECRET=<onedire_client_secret> \
+  -p 8086:8086 \
+  -p 8000:8000 \
+  node-downloader:release
+```
 
 Prerequisites
 -------------
