@@ -75,6 +75,21 @@ describe('ChildProcessPool tests', () => {
         done();
       }
     });
+
+    test('should emit canFork when childProcessCount < maxChildProcess after tryFork is called', (done) => {
+      // arrange
+      childProcessPool = new ChildProcessPool(2);
+      childProcessPool.childProcessCount = 0;
+      childProcessPool.on('canFork', assert);
+
+      // act
+      childProcessPool.tryFork();
+
+      // assert
+      function assert() {
+        done();
+      }    
+    });
   });
 
   describe('canFork', () => {

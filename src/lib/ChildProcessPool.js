@@ -15,7 +15,11 @@ class ChildProcessPool extends EventEmitter {
 
     const incrementedCount = ++this.childProcessCount;
     this.emit('childForked', incrementedCount);
-    
+
+    if (this.canFork()) {
+      this.emit('canFork');
+    }
+
     const childProcess = fork(script);
     childProcess.on('disconnect', () => {
       const currentProcesses = --this.childProcessCount;
