@@ -9,7 +9,7 @@ class ChildProcessPool extends EventEmitter {
   }
 
   tryFork(script) {
-    if(!this.canFork()) {
+    if (!this.canFork()) {
       return null;
     }
 
