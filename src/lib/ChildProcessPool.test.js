@@ -90,6 +90,45 @@ describe('ChildProcessPool tests', () => {
         done();
       }    
     });
+
+    test('should emit 3 events when childProcessCount < maxChildProcess after tryFork is called', () => {
+      // arrange
+      childProcessPool = new ChildProcessPool(2);
+      childProcessPool.childProcessCount = 0;
+      childProcessPool.emit = jest.fn().mockReturnValue();
+
+      // act
+      childProcessPool.tryFork();
+
+      // assert
+      expect(childProcessPool.emit).toHaveBeenCalledTimes(3); 
+    });
+
+    test('should emit 2 events when childProcessCount = maxChildProcess after tryFork is called', () => {
+      // arrange
+      childProcessPool = new ChildProcessPool(1);
+      childProcessPool.childProcessCount = 0;
+      childProcessPool.emit = jest.fn().mockReturnValue();
+
+      // act
+      childProcessPool.tryFork();
+
+      // assert
+      expect(childProcessPool.emit).toHaveBeenCalledTimes(2); 
+    });
+
+    test('should emit 0 events when childProcessCount > maxChildProcess after tryFork is called', () => {
+      // arrange
+      childProcessPool = new ChildProcessPool(1);
+      childProcessPool.childProcessCount = 1;
+      childProcessPool.emit = jest.fn().mockReturnValue();
+
+      // act
+      childProcessPool.tryFork();
+
+      // assert
+      expect(childProcessPool.emit).toHaveBeenCalledTimes(0); 
+    });
   });
 
   describe('canFork', () => {
