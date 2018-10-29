@@ -9,8 +9,7 @@ class ChildProcessPool extends EventEmitter {
   }
 
   tryFork(script) {
-    const count = this.childProcessCount;
-    if (count >= this.maxChildProcess) {
+    if(!this.canFork()) {
       return null;
     }
 
@@ -24,6 +23,10 @@ class ChildProcessPool extends EventEmitter {
     });
   
     return childProcess;
+  }
+
+  canFork() {
+    return this.childProcessCount < this.maxChildProcess;
   }
 }
 

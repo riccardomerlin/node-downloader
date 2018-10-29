@@ -25,10 +25,10 @@ describe('ChildProcessPool tests', () => {
     test('should return null if childProcessCount is equal maxChildProcess', () => {
       // arrange
       childProcessPool.childProcessCount = 1;
-  
+
       // act
       const result = childProcessPool.tryFork();
-  
+
       // assert
       expect(result).toBeNull();
     });
@@ -36,10 +36,10 @@ describe('ChildProcessPool tests', () => {
     test('should return null if childProcessCount is greater than maxChildProcess', () => {
       // arrange
       childProcessPool.childProcessCount = 2;
-  
+
       // act
       const result = childProcessPool.tryFork();
-  
+
       // assert
       expect(result).toBeNull();
     });
@@ -48,7 +48,7 @@ describe('ChildProcessPool tests', () => {
       // arrange
       childProcessPool.childProcessCount = 0;
       childProcessPool.on('childForked', assert);
-  
+
       // act
       childProcessPool.tryFork();
 
@@ -64,7 +64,7 @@ describe('ChildProcessPool tests', () => {
       // arrange
       childProcessPool.childProcessCount = 0;
       childProcessPool.on('childDisconnected', assert);
-  
+
       // act
       childProcessPool.tryFork();
 
@@ -74,6 +74,35 @@ describe('ChildProcessPool tests', () => {
         expect(count).toBe(0);
         done();
       }
+    });
+  });
+
+  describe('canFork', () => {
+    test('should return true when childProcessCount < maxChildProcess', () => {
+      childProcessPool = new ChildProcessPool(1);
+      childProcessPool.childProcessCount = 0;
+
+      const result = childProcessPool.canFork();
+
+      expect(result).toBe(true);
+    });
+
+    test('should return false when childProcessCount = maxChildProcess', () => {
+      childProcessPool = new ChildProcessPool(1);
+      childProcessPool.childProcessCount = 1;
+
+      const result = childProcessPool.canFork();
+
+      expect(result).toBe(false);
+    });
+
+    test('should return false when childProcessCount > maxChildProcess', () => {
+      childProcessPool = new ChildProcessPool(1);
+      childProcessPool.childProcessCount = 2;
+
+      const result = childProcessPool.canFork();
+
+      expect(result).toBe(false);
     });
   });
 });
