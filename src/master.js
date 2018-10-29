@@ -53,13 +53,18 @@ async function master(downloadPath) {
     process.exit();
   }
 
-  const processPool = new ChildProcessPool(childProcesses)
+  const filesQueue = new Queue(endpoint);
+  const processPool = new ChildProcessPool(childProcesses);
+
+  processPool
     .on('childDisconnected', onChildDisconnected)
     .on('childForked', (activeChildProcesses) => {
       monitor.updateProperty('activeDownloads', activeChildProcesses);
+    })
+    .on('canFork', () => {
+      setImmediate(() => downloadNextFile(filesQueue, processPool));
     });
 
-  const filesQueue = new Queue(endpoint);
   filesQueue
     .on('started', () => {
       setImmediate(() => downloadNextFile(filesQueue, processPool));
@@ -88,7 +93,6 @@ async function master(downloadPath) {
 
     const file = queue.dequeue();
     if (!file) {
-      setImmediate(() => { downloadNextFile(queue, poolOfProcesses); });
       return;
     }
 
@@ -132,7 +136,5 @@ async function master(downloadPath) {
       accessToken: endpoint.accessToken,
       refreshToken: endpoint.refreshToken
     });
-
-    setImmediate(() => { downloadNextFile(queue, poolOfProcesses); });
   }
 }
