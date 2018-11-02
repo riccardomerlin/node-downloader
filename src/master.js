@@ -108,26 +108,26 @@ async function master(downloadPath) {
         fileSaverProcess.disconnect();
       }
 
-      switch (status) {
-        case 'newChunk':
+      const logger = {
+        newChunk: () => {
           process.stdout.clearLine();
           process.stdout.cursorTo(0);
-          process.stdout.write(`${percentage}% `);
-          break;
-        case 'done':
+          process.stdout.write(`${percentage}% `);   
+        },
+        done: () => {
           process.stdout.clearLine();
           process.stdout.cursorTo(0);
           process.stdout.write(`100% ${processedFile.name} complete.\n`);
           monitor.updateProperty('downloadsCompleted', monitor.displayObject.downloadsCompleted + 1);
-          break;
-        case 'retry':
+        },
+        retry: () => {
           console.log(`Download failed. File ${processedFile.name} enqueued to be re-processed.`);
           queue.enqueue(processedFile);
           monitor.updateProperty('httpFailures', monitor.displayObject.httpFailures + 1);
-          break;
-        default:
-          break;
-      }
+        }
+      };
+
+      logger[status]();
     });
 
     fileSaverProcess.send({
