@@ -1,8 +1,12 @@
 const OneDrive = require('./OneDrive/OneDriveApi');
+const Flickr = require('./Flickr');
 
 class ApiProviders {
   constructor() {
-    this.providers = { OneDrive: OneDrive };
+    this.providers = {
+      Flickr: Flickr,
+      OneDrive: OneDrive
+    };
   }
 
   async get(providerName) {
