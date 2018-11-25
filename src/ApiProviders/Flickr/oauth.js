@@ -1,13 +1,14 @@
 const Flickr = require('flickr-sdk');
 const dotenv = require('dotenv');
+const config = require('./config');
 
 dotenv.config();
 
 class OAuth {
   constructor() {
     this.oauth = new Flickr.OAuth(
-      process.env.FLICKR_CONSUMER_KEY,
-      process.env.FLICKR_CONSUMER_SECRET
+      config.flickrConsumerKey,
+      config.flickrConsumerSecret
     );
   }
 

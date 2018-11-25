@@ -2,19 +2,17 @@ const express = require('express');
 const detect = require('detect-port');
 const http = require('http');
 const helmet = require('helmet');
-const dotenv = require('dotenv');
+const config = require('../config');
 
 const OAuth = require('../oauth');
-
-dotenv.config();
 
 const webAccessPort = 8989;
 
 webServer();
 
 async function webServer() {
-  if (!process.env.FLICKR_CONSUMER_KEY || !process.env.FLICKR_CONSUMER_SECRET) {
-    throw new Error('Error: CONSUMER_KEY or CONSUMER_SECRET are not set correctly.');
+  if (!config.flickrConsumerKey || !config.flickrConsumerSecret) {
+    throw new Error('Error: flickrConsumerKey or flickrConsumerSecret are not set in the config file.');
   }
 
   const port = await detect(webAccessPort);
@@ -26,7 +24,7 @@ async function webServer() {
 
   const oauth = new OAuth();
   const { oauthToken, oauthTokenSecret } = await oauth.requestToken(baseUrl);
-  
+
   let server;
   const app = express();
 
