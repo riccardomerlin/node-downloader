@@ -33,7 +33,7 @@ class Queue extends EventEmitter {
 
     if (result.nextLink) {
       this.moreItems = true;
-      process.nextTick(() => this.populate(nextLink));
+      process.nextTick(() => this.populate(result.nextLink));
     } else {
       this.moreItems = false;
     }
