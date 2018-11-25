@@ -27,7 +27,7 @@ async function write(args) {
     const ApiEndpoint = await (new ApiProviders()).get(apiProviderName);
     const endpoint = new ApiEndpoint(accessToken, refreshToken);
     try {
-      const stream = await callApi(endpoint, 'getFile', file.name);
+      const stream = await callApi(endpoint, 'getFile', file.url || file.name);
 
       fileWriter.write(
         stream,
@@ -35,7 +35,7 @@ async function write(args) {
         file.name
       );
     } catch (error) {
-      console.error(`\n${error}`);
+      console.error(`\nFileSaver: ${error}`);
       process.send({ status: 'retry', processedFile: file });
     }
   }
