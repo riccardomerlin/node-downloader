@@ -112,7 +112,7 @@ async function master(downloadPath) {
         newChunk: () => {
           process.stdout.clearLine();
           process.stdout.cursorTo(0);
-          process.stdout.write(`${percentage}% `);   
+          process.stdout.write(`${percentage}% `);
         },
         done: () => {
           process.stdout.clearLine();
@@ -132,7 +132,7 @@ async function master(downloadPath) {
 
     fileSaverProcess.send({
       downloadPath,
-      file,
+      file: { id: file.id, name: file.name, url: file.url, size: file.size },
       accessToken: endpoint.accessToken,
       refreshToken: endpoint.refreshToken
     });
