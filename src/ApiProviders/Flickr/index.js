@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const config = require('./config');
 const webServer = require('./WebServer');
-const PhotoFile = require('./PhotoFile');
+const FileFactory = require('./FileFactory');
 
 const pageSize = 50;
 
@@ -66,7 +66,8 @@ class FlickrApiProvider {
       const response = await this.flickr.photos.search(
         {
           user_id: await this.getUserId(),
-          extras: 'url_o,date_taken',
+          media: 'all',
+          extras: 'url_o,date_taken,media',
           per_page: pageSize,
           page: currentPage,
           sort: 'date-taken-asc'
@@ -76,7 +77,7 @@ class FlickrApiProvider {
         files: response.body.photos.photo
           .map((photo) => {
             photo.size = 0;
-            return new PhotoFile(photo);
+            return FileFactory.Create(photo);
           })
       };
 
@@ -128,9 +129,6 @@ class FlickrApiProvider {
 
     return result;
   }
-
-  // async tokenRefresh() {
-  // }
 }
 
 module.exports = FlickrApiProvider;
