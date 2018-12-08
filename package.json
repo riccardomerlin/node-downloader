@@ -13,7 +13,6 @@
   "scripts": {
     "test": "jest",
     "start": "node ./src/console.js",
-    "prestart": "gulp cleanup && gulp lint",
     "lint": "gulp lint",
     "monitor": "node ./src/lib/clientMonitor.js"
   },
@@ -44,7 +43,7 @@
     "del": "^3.0.0",
     "eslint-config-airbnb-base": "11.3.2",
     "eslint-plugin-import": "^2.7.0",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-eslint": "3.0.1",
     "gulp-plumber": "^1.1.0",
     "jest": "^21.2.1",

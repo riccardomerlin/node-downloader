@@ -1,13 +1,10 @@
-const gulp = require('gulp');
+const { src } = require('gulp');
 const eslint = require('gulp-eslint');
 const plumber = require('gulp-plumber');
 const del = require('del');
 
-gulp.task('lint', jsLint);
-gulp.task('cleanup', cleanUp);
-
 function jsLint() {
-  return gulp.src([
+  return src([
     'src/**/*.js',
     '**/*.test.js',
     '!coverage/**/*',
@@ -22,3 +19,8 @@ function jsLint() {
 function cleanUp() {
   return del('downloads/*.*');
 }
+
+module.exports = {
+  lint: jsLint,
+  cleanup: cleanUp
+};
