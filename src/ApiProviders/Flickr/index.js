@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const config = require('./config');
 const webServer = require('./WebServer');
-const FileFactory = require('./FileFactory');
+const FileFactory = require('./lib/FileFactory');
 
 const pageSize = 50;
 
