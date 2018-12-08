@@ -1,15 +1,9 @@
 const uuidV1 = require('uuid/v1');
+const MediaFile = require('./MediaFile');
 
-class PhotoFile {
+class PhotoFile extends MediaFile {
   constructor(photo) {
-    this._id = photo.id;
-    this._url = photo.url_o;
-    this._size = photo.size;
-    this._dateTaken = photo.datetaken;
-  }
-
-  get id() {
-    return this._id;
+    super(photo)
   }
 
   get name() {
@@ -20,14 +14,6 @@ class PhotoFile {
     }
     const prefix = this._dateTaken.split(' ')[0];
     return `${prefix}_${name}`;
-  }
-
-  get size() {
-    return this._size;
-  }
-
-  get url() {
-    return this._url;
   }
 }
 
