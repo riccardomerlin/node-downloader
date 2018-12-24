@@ -74,12 +74,18 @@ class FlickrApiProvider {
         });
 
       result = {
-        files: response.body.photos.photo
-          .map((photo) => {
-            photo.size = 0;
-            return FileFactory.Create(photo);
-          })
-      };
+        files: await Promise.all(
+          response.body.photos.photo
+            .map(async (photo) => {
+              const url = await this.getVideoOriginalUrl(photo.id)
+              if(url) {
+                photo.url_o = url
+              }
+              photo.size = 0;
+
+              return FileFactory.Create(photo);
+            }))
+      }
 
       if (currentPage + 1 <= response.body.photos.pages) {
         result.nextLink = currentPage + 1;
@@ -89,6 +95,27 @@ class FlickrApiProvider {
     }
 
     return result;
+  }
+
+  async getVideoOriginalUrl(videoId) {
+    try {
+      const response = await this.flickr.photos.getSizes({
+        photo_id: videoId
+      })
+
+      const videoSizeObject = response.body
+        .sizes
+        .size
+        .find((item) => {
+          return item.label === 'Video Original'
+        })
+
+      if (videoSizeObject) {
+        return videoSizeObject.source;
+      }
+    } catch (error) {
+      throw Error(`update Video ${videoId} Original Url error: ${error.message}`)
+    }
   }
 
   async getFile(url) {
