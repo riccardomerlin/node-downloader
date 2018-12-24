@@ -4,7 +4,7 @@ const http = require('http');
 const helmet = require('helmet');
 const config = require('../config');
 
-const OAuth = require('../oauth');
+const OAuth = require('../lib/OAuth');
 
 const webAccessPort = 8989;
 

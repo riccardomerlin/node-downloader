@@ -1,6 +1,6 @@
 const Flickr = require('flickr-sdk');
 const dotenv = require('dotenv');
-const config = require('./config');
+const config = require('../../config');
 
 dotenv.config();
 

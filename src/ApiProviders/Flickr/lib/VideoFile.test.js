@@ -32,8 +32,8 @@ describe('VideoFile tests', () => {
   });
 
   test('should return video download url when asking for file.url', () => {
-    const video = { id: 123 };
+    const video = { url_o: 'http://www.flickr.com/' };
     const file = new VideoFile(video);
-    expect(file.url).toBe('http://www.flickr.com/video_download.gne?id=123');
+    expect(file.url).toBe('http://www.flickr.com/');
   });
 });
