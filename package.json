@@ -50,7 +50,7 @@
     "pre-commit": "^1.2.2"
   },
   "dependencies": {
-    "axios": "^0.17.0",
+    "axios": "^0.18.1",
     "detect-port": "^1.2.2",
     "dotenv": "^6.1.0",
     "express": "^4.16.2",
