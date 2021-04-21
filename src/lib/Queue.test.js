@@ -4,13 +4,14 @@ jest.mock('./callApi.js');
 const callApi = require('./callApi');
 const Queue = require('./Queue');
 
-describe('Queue tests', () => {
+describe('Queue', () => {
   let queue;
   beforeEach(() => {
     queue = new Queue();
+    callApi.mockClear();
   });
 
-  test('queue is empty when the default constructor gets invoked', () => {
+  test('is empty when the default constructor gets invoked', () => {
     expect(queue.isEmpty).toBe(true);
   });
 
@@ -54,22 +55,22 @@ describe('Queue tests', () => {
         enqueue.mockRestore();
       }
     });
-
-    test('emit error with argument "myError" if callApi fails', async (done) => {
-      // arrange
-      callApi.mockImplementationOnce(() => Promise.reject('myError'));
+    test('emit stop after 3 recursive calls when persistent error in callApi', async (done) => {
+      callApi
+        .mockImplementation(async () => Promise.reject('myError1'));
       queue.on('error', assert);
 
       // act
       try {
-        await queue.populate();
+        await queue.populate('link');
       } catch (error) {
         // noop
       }
 
       // assert
       function assert(errorMessage) {
-        expect(errorMessage).toBe('myError');
+        expect(callApi).toHaveBeenCalledTimes(4); // first time + 3 retries
+        expect(errorMessage).toBe('myError1');
         done();
       }
     });

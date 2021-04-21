@@ -9,6 +9,7 @@ class Queue extends EventEmitter {
     this.queue = [];
     this.moreItems = false;
     this.started = false;
+    this.retries = 0;
   }
 
   get isEmpty() {
@@ -24,9 +25,12 @@ class Queue extends EventEmitter {
     try {
       result = await callApi(this.endpoint, 'getFiles', nextLink);
     } catch (error) {
-      this.emit('error', error);
+      if (this.retries > 2) {
+        this.emit('error', error);
+        return;
+      }
+      ++this.retries;
       await this.populate(nextLink);
-      return;
     }
 
     this.enqueue(result.files);
