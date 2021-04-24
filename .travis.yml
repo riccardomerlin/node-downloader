@@ -4,5 +4,5 @@ node_js:
 before_install:
   - npm install -g codecov
 script:
-  - jest
+  - npm run citest
   - codecov
