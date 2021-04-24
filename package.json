@@ -15,6 +15,7 @@
     "lint": "gulp lint",
     "monitor": "node ./src/lib/clientMonitor.js",
     "precitest": "npm run lint",
+    "pretest": "npm run lint",
     "start": "node ./src/console.js",
     "test": "jest"
   },
