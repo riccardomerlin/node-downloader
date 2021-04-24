@@ -15,9 +15,10 @@ describe('FileFactory tests', () => {
     expect(created).toBeInstanceOf(PhotoFile);
   });
 
-  test('should return undefined if no tipe in file', () => {
-    const file = { };
-    const created = FileFactory.Create(file);
-    expect(created).toBeUndefined();
+  test('should throw Error if no type in file', () => {
+    const file = {};
+    expect(() => {
+      FileFactory.Create(file);
+    }).toThrow();
   });
 });
