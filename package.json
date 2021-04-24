@@ -11,10 +11,12 @@
     "url": "https://github.com/riccardomerlin/node-downloader.git"
   },
   "scripts": {
-    "test": "jest --coverage",
-    "start": "node ./src/console.js",
+    "citest": "jest --ci --coverage",
     "lint": "gulp lint",
-    "monitor": "node ./src/lib/clientMonitor.js"
+    "monitor": "node ./src/lib/clientMonitor.js",
+    "precitest": "npm run lint",
+    "start": "node ./src/console.js",
+    "test": "jest"
   },
   "engines": {
     "node": "^12"
