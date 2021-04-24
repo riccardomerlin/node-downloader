@@ -77,15 +77,15 @@ class FlickrApiProvider {
         files: await Promise.all(
           response.body.photos.photo
             .map(async (photo) => {
-              const url = await this.getVideoOriginalUrl(photo.id)
-              if(url) {
-                photo.url_o = url
+              const url = await this.getVideoOriginalUrl(photo.id);
+              if (url) {
+                photo.url_o = url;
               }
               photo.size = 0;
 
               return FileFactory.Create(photo);
             }))
-      }
+      };
 
       if (currentPage + 1 <= response.body.photos.pages) {
         result.nextLink = currentPage + 1;
@@ -101,20 +101,16 @@ class FlickrApiProvider {
     try {
       const response = await this.flickr.photos.getSizes({
         photo_id: videoId
-      })
+      });
 
       const videoSizeObject = response.body
         .sizes
         .size
-        .find((item) => {
-          return item.label === 'Video Original'
-        })
+        .find(item => item.label === 'Video Original');
 
-      if (videoSizeObject) {
-        return videoSizeObject.source;
-      }
+      return videoSizeObject.source;
     } catch (error) {
-      throw Error(`update Video ${videoId} Original Url error: ${error.message}`)
+      throw Error(`update Video ${videoId} Original Url error: ${error.message}`);
     }
   }
 

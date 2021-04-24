@@ -1,11 +1,8 @@
 const uuidV1 = require('uuid/v1');
 
 const MediaFile = require('./MediaFile');
-jest.mock('uuid/v1', () => {
-  return jest.fn().mockImplementation(() => {
-    return '40db8d30-fa78-11e8-9dcc-6109579d5771';
-  });
-});
+
+jest.mock('uuid/v1', () => jest.fn().mockImplementation(() => '40db8d30-fa78-11e8-9dcc-6109579d5771'));
 
 describe('MediaFile tests', () => {
   beforeEach(() => {

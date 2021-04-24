@@ -9,7 +9,7 @@ class FileFactory {
       case 'photo':
         return new PhotoFile(file);
       default:
-        break;
+        throw new Error('FileFactory Create: invalid media type.');
     }
   }
 }

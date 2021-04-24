@@ -2,10 +2,6 @@ const uuidV1 = require('uuid/v1');
 const MediaFile = require('./MediaFile');
 
 class PhotoFile extends MediaFile {
-  constructor(photo) {
-    super(photo)
-  }
-
   get name() {
     let name = uuidV1();
     if (typeof this._url === 'string') {
