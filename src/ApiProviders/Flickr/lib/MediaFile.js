@@ -13,7 +13,7 @@ class MediaFile {
   }
 
   get name() {
-    let name = uuidV1();
+    const name = uuidV1();
     const prefix = this._dateTaken.split(' ')[0];
     return `${prefix}_${name}`;
   }
