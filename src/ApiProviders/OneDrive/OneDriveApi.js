@@ -25,7 +25,7 @@ class OneDriveApi {
     return new Promise((resolve, reject) => {
       web.on('message', (data) => {
         if (!data) {
-          reject('No data has been retuned for credentials.');
+          reject('No data has been returned for credentials.');
           return;
         }
 
