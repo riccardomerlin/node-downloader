@@ -65,7 +65,7 @@
     "proper-url-join": "^1.2.0",
     "server-destroy": "^1.0.1",
     "single-line-log": "^1.1.2",
-    "superagent": "^3.7.0",
+    "superagent": "^7.0.2",
     "toobusy-js": "^0.5.1",
     "uuid": "^3.3.2"
   }
